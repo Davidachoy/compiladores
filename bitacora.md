@@ -11,6 +11,8 @@ Evidencia de la creación del documento compartido.
 # 02/03/2023 4:41PM
 David achoy y Javier Vasquez
 Nos reunimos para empezar el trabajo entre los dos
+
 Evidencia de la llamada
 
 
+![WhatsApp Image 2023-03-15 at 19 19 13](https://user-images.githubusercontent.com/83445439/225548456-fe9bc3f1-8157-4a1e-b725-1e6443ee9f64.jpeg)
