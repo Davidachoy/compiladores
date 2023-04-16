@@ -14,7 +14,7 @@ import java.io.File;
 public class Principal {
     public static void main(String[] args) {
         
-        String ruta = "C:/Users/javie/Documents/NetBeansProjects/Analizador lexico/src/codigo/Lexer.flex";
+        String ruta = "C:/Users/javie/Desktop/Analizador lexico/src/codigo/Lexer.flex";
         generateLexer(ruta);
     }
     public static void generateLexer(String ruta){

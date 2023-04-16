@@ -35,8 +35,8 @@ import static codigo.Tokens.*;
 "%" { return OPERADOR; }
 "(" { return PARENTESIS_ABIERTO; }
 ")" { return PARENTESIS_CERRADO; }
-"{" { return LLAVE_ABIERTA; }
-"}" { return LLAVE_CERRADA; }
+"{" { lexeme=yytext();return LLAVE_ABIERTA; }
+"}" { lexeme=yytext();return LLAVE_CERRADA; }
 "<" { return EXPRESION_RELACIONAL; }
 "<=" { return EXPRESION_RELACIONAL; }
 ">" { return EXPRESION_RELACIONAL; }
