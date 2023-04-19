@@ -17,26 +17,25 @@ parser code
 terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
          LLAVE_CERRADA, PARENTESIS_ABIERTO, PARENTESIS_CERRADO,
          PUNTO_COMA, IGUAL, LITERAL_INT, LITERAL_FLOAT,
-         LITERAL_BOOL, LITERAL_CHAR, LITERAL_STRING,
+         LITERAL_CHAR, LITERAL_STRING,
          CORCHETE_ABIERTO,
          CORCHETE_CERRADO, IF, ELIF, ELSE, WHILE, FOR, DO, RETURN,
          READ, PRINT, MAIN, TRUE, FALSE, NEGACION, BREAK, MENOR_QUE,
          MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES,SUMA,RESTA,
          MULTIPLICACION, DIVISION,MODULO, POTENCIA, ERROR,
          CONJUNCION, DISYUNCION, DOLAR,
-        ARRAY_NUMBER,INCREMENTO,DECREMENTO,OPERADOR_NEGATIVO;
+        ARRAY_NUMBER,INCREMENTO,DECREMENTO;
 
 non terminal inicio, funcion, nombre_funcion, tipo,
              identificador, parametros, param, cuerpo_funcion,
              bloque, sentencia, declaracion, asignacion,
-             estructura_control, declaracion_if, declaracion_elif,
-             declaracion_else, declaracion_while, condicion,
-             expresion_logica, expresion_relacional,asignacion_opcional,
-             expresiones_relacionales, operador_logico, negacion, 
+             estructura_control, declaracion_if,
+             expresion_logica, expresion_relacional,
+             asignacion_opcional, operador_logico, negacion, 
              declaracion_for, inc_for, condicion_for,
              declaracion_do_while, main, lectura, escritura, expresion,
              expresion_unaria, expresion_binaria, operador_unario,
-             operador_negativo, operador, literal, literal_int,
+             operador_negativo, operador, literal, literal_int,else_parte,
              literal_float, literal_bool, literal_char, literal_string,
              llamada_funcion, parametrosInv, paramInv, tipo_array,
              acceso_arreglo,asignacion_arreglo,operador_relacional;
@@ -49,7 +48,7 @@ precedence left CONJUNCION, DISYUNCION;
 precedence left MENOR_QUE, MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES;
 
 
-start with literal;
+start with inicio;
 
 inicio::= main 
         | main funcion 
@@ -74,7 +73,12 @@ acceso_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO DOL
 
 asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO IGUAL expresion DOLAR;
 
-declaracion_if ::= IF PARENTESIS_ABIERTO PARENTESIS_CERRADO;
+declaracion_if ::= IF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO else_parte;
+
+else_parte ::= ELIF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO cuerpo_funcion else_parte
+             | ELSE cuerpo_funcion
+             |;
+
 
 sentencia ::= declaracion
             | asignacion
@@ -82,7 +86,7 @@ sentencia ::= declaracion
             | lectura DOLAR
             | escritura DOLAR
             | asignacion_arreglo
-            | llamada_funcion 
+            | llamada_funcion DOLAR
             | RETURN expresion DOLAR
             | BREAK DOLAR;
 
@@ -97,13 +101,13 @@ expresion ::= identificador
             | expresion_relacional 
             | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO
             | tipo_array
-            | llamada_funcion
+            | llamada_funcion 
             | acceso_arreglo;
 
 identificador ::= IDENTIFICADOR;
 
-llamada_funcion ::= identificador PARENTESIS_ABIERTO parametrosInv PARENTESIS_CERRADO DOLAR
-                |identificador PARENTESIS_ABIERTO PARENTESIS_CERRADO DOLAR;
+llamada_funcion ::= identificador PARENTESIS_ABIERTO parametrosInv PARENTESIS_CERRADO 
+                |identificador PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
 
 parametros ::= param | parametros COMA param;
 
@@ -136,8 +140,7 @@ declaracion ::= tipo identificador asignacion_opcional DOLAR;
 asignacion ::= identificador IGUAL expresion DOLAR;
 
 
-expresion_binaria ::= expresion operador expresion
-                   | expresion operador_logico expresion;
+expresion_binaria ::= expresion operador expresion;
  
 expresion_unaria ::= operador_unario expresion;
 
@@ -157,18 +160,15 @@ operador_relacional ::= MENOR_QUE
                       | IGUALES
                       | DIFERENTES;
   
-operador_unario ::= INCREMENTO | DECREMENTO | OPERADOR_NEGATIVO;
+operador_unario ::= INCREMENTO | DECREMENTO | RESTA ;
 
-expresion_logica ::= expresion operador_logico expresion
-                    | negacion expresion_logica
-                    | expresion_relacional
-                    |  PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO; 
+expresion_logica ::= negacion expresion_logica
+                   | expresion_relacional operador_logico expresion_relacional
+                   | PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO;
 
 negacion ::= NEGACION; 
 
 operador_logico ::= CONJUNCION
                    |DISYUNCION;
-
-
 
 asignacion_opcional ::= IGUAL expresion | ;
