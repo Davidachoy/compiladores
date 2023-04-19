@@ -44,7 +44,6 @@ import java_cup.runtime.Symbol;
 "--" { return symbol(sym.DECREMENTO, yychar, yyline, yytext()); }
 "+" { return symbol(sym.SUMA, yychar, yyline, yytext()); }
 "-" { return symbol(sym.RESTA, yychar, yyline, yytext()); }
-
 "[" { return symbol(sym.CORCHETE_ABIERTO, yychar, yyline, yytext()); }
 "]" { return symbol(sym.CORCHETE_CERRADO, yychar, yyline, yytext()); }
 "*" { return symbol(sym.MULTIPLICACION, yychar, yyline, yytext()); }
@@ -67,7 +66,6 @@ import java_cup.runtime.Symbol;
 "not" { return symbol(sym.NEGACION, yychar, yyline, yytext()); }
 "," { return symbol(sym.COMA, yychar, yyline, yytext()); }
 "$" { return symbol(sym.DOLAR, yychar, yyline, yytext()); }
-";" { return symbol(sym.PUNTO_COMA, yychar, yyline, yytext()); }
 "=" { return symbol(sym.IGUAL, yychar, yyline, yytext()); }
 "@[^\n]*\n" { /* Ignore */ }
 "/_" [^_]* "_/" {  /* Ignore */  }

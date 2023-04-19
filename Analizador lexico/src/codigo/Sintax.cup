@@ -2,21 +2,30 @@ package codigo;
 
 import java_cup.runtime.Symbol;
 
+// Sección para el código del parser
+
 parser code
 {:
     private Symbol s;
-    
+
+    // Método que se invoca cuando ocurre un error de sintaxis
+
     public void syntax_error(Symbol s){
         this.s = s;
     }
+
+    // Devuelve el símbolo actual
 
     public Symbol getS(){
         return this.s;
 }
 :};
+
+// Terminales
+
 terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
          LLAVE_CERRADA, PARENTESIS_ABIERTO, PARENTESIS_CERRADO,
-         PUNTO_COMA, IGUAL, LITERAL_INT, LITERAL_FLOAT,
+         IGUAL, LITERAL_INT, LITERAL_FLOAT,
          LITERAL_CHAR, LITERAL_STRING,
          CORCHETE_ABIERTO,
          CORCHETE_CERRADO, IF, ELIF, ELSE, WHILE, FOR, DO, RETURN,
@@ -25,6 +34,9 @@ terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
          MULTIPLICACION, DIVISION,MODULO, POTENCIA, ERROR,
          CONJUNCION, DISYUNCION, DOLAR,
         ARRAY_NUMBER,INCREMENTO,DECREMENTO;
+
+
+// No terminales
 
 non terminal inicio, funcion, nombre_funcion, tipo,
              identificador, parametros, param, cuerpo_funcion,
@@ -35,11 +47,12 @@ non terminal inicio, funcion, nombre_funcion, tipo,
              declaracion_for, inc_for, condicion_for,
              declaracion_do_while, main, lectura, escritura, expresion,
              expresion_unaria, expresion_binaria, operador_unario,
-             operador_negativo, operador, literal, literal_int,else_parte,
+             operador, literal, literal_int,else_parte,
              literal_float, literal_bool, literal_char, literal_string,
-             llamada_funcion, parametrosInv, paramInv, tipo_array,
+             llamada_funcion, parametrosInv, paramInv, tipo_array,declaracion_opcional,
              acceso_arreglo,asignacion_arreglo,operador_relacional;
 
+// Precedencias
 
 precedence left SUMA, RESTA;
 precedence left MULTIPLICACION, DIVISION, MODULO;
@@ -47,8 +60,11 @@ precedence right POTENCIA;
 precedence left CONJUNCION, DISYUNCION;
 precedence left MENOR_QUE, MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES;
 
+// Regla inicial
 
 start with inicio;
+
+// Reglas para la sección "inicio"
 
 inicio::= main 
         | main funcion 
@@ -65,6 +81,8 @@ nombre_funcion ::= tipo identificador PARENTESIS_ABIERTO parametros PARENTESIS_C
 
 bloque ::= bloque sentencia  | sentencia;
 
+// Reglas para la sección "estructura_control"
+
 estructura_control::= declaracion_if 
                     | declaracion_do_while 
                     | declaracion_for;
@@ -73,12 +91,25 @@ acceso_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO DOL
 
 asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO IGUAL expresion DOLAR;
 
-declaracion_if ::= IF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO else_parte;
+declaracion_if ::= IF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO cuerpo_funcion else_parte;
 
 else_parte ::= ELIF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO cuerpo_funcion else_parte
              | ELSE cuerpo_funcion
              |;
 
+declaracion_for ::= FOR PARENTESIS_ABIERTO condicion_for PARENTESIS_CERRADO cuerpo_funcion;
+
+condicion_for ::= asignacion DOLAR expresion_logica DOLAR inc_for;
+
+declaracion_do_while ::= DO cuerpo_funcion WHILE PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO DOLAR;
+
+inc_for::=  INCREMENTO identificador
+               | DECREMENTO identificador
+               | identificador INCREMENTO
+               | identificador DECREMENTO
+               | asignacion;
+
+// Reglas para las posibles sentencias
 
 sentencia ::= declaracion
             | asignacion
@@ -90,15 +121,17 @@ sentencia ::= declaracion
             | RETURN expresion DOLAR
             | BREAK DOLAR;
 
-lectura ::= READ PARENTESIS_ABIERTO identificador PARENTESIS_CERRADO;
 
-escritura ::= PRINT PARENTESIS_ABIERTO paramInv PARENTESIS_CERRADO;
+lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
+
+escritura ::= PRINT PARENTESIS_ABIERTO PARENTESIS_CERRADO;
+
+// Reglas para las posibles expressiones
 
 expresion ::= identificador 
             | literal 
             | expresion_unaria 
             | expresion_binaria 
-            | expresion_relacional 
             | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO
             | tipo_array
             | llamada_funcion 
@@ -120,6 +153,8 @@ parametrosInv ::= parametrosInv COMA paramInv
                 
 paramInv ::= identificador | literal   ;
 
+// Literales
+
 literal ::=   literal_int
             | literal_float
             | literal_bool
@@ -135,16 +170,19 @@ literal_string::= LITERAL_STRING;
 tipo_array ::= INT identificador CORCHETE_ABIERTO ARRAY_NUMBER CORCHETE_CERRADO
             |CHAR identificador CORCHETE_ABIERTO ARRAY_NUMBER CORCHETE_CERRADO;
 
-declaracion ::= tipo identificador asignacion_opcional DOLAR;
+declaracion ::= tipo identificador declaracion_opcional DOLAR;
 
-asignacion ::= identificador IGUAL expresion DOLAR;
-
+asignacion ::= identificador asignacion_opcional;
 
 expresion_binaria ::= expresion operador expresion;
  
 expresion_unaria ::= operador_unario expresion;
 
-expresion_relacional::= expresion operador_relacional expresion;
+// Reglas para las expresiones unarias
+
+operador_unario ::= INCREMENTO | DECREMENTO | RESTA ;
+
+// operadores
 
 operador ::= SUMA
             | RESTA
@@ -160,10 +198,10 @@ operador_relacional ::= MENOR_QUE
                       | IGUALES
                       | DIFERENTES;
   
-operador_unario ::= INCREMENTO | DECREMENTO | RESTA ;
 
 expresion_logica ::= negacion expresion_logica
                    | expresion_relacional operador_logico expresion_relacional
+                   | expresion operador_relacional expresion
                    | PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO;
 
 negacion ::= NEGACION; 
@@ -171,4 +209,12 @@ negacion ::= NEGACION;
 operador_logico ::= CONJUNCION
                    |DISYUNCION;
 
-asignacion_opcional ::= IGUAL expresion | ;
+declaracion_opcional ::= IGUAL expresion 
+                      | IGUAL lectura
+                      | IGUAL escritura
+                      | ;
+
+asignacion_opcional ::= IGUAL expresion DOLAR
+                      | IGUAL lectura DOLAR
+                      | IGUAL escritura DOLAR
+                      | ;
