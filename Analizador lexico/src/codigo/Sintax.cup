@@ -62,7 +62,7 @@ precedence left MENOR_QUE, MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFEREN
 
 // Regla inicial
 
-start with inicio;
+start with expresion;
 
 // Reglas para la sección "inicio"
 
@@ -217,4 +217,5 @@ declaracion_opcional ::= IGUAL expresion
 asignacion_opcional ::= IGUAL expresion DOLAR
                       | IGUAL lectura DOLAR
                       | IGUAL escritura DOLAR
+                      | IGUAL expresion_logica DOLAR
                       | ;
