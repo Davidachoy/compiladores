@@ -32,8 +32,7 @@ terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
          READ, PRINT, MAIN, TRUE, FALSE, NEGACION, BREAK, MENOR_QUE,
          MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES,SUMA,RESTA,
          MULTIPLICACION, DIVISION,MODULO, POTENCIA, ERROR,
-         CONJUNCION, DISYUNCION, DOLAR,
-        ARRAY_NUMBER,INCREMENTO,DECREMENTO;
+         CONJUNCION, DISYUNCION, DOLAR,INCREMENTO,DECREMENTO;
 
 
 // No terminales
@@ -41,16 +40,16 @@ terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
 non terminal inicio, funcion, nombre_funcion, tipo,
              identificador, parametros, param, cuerpo_funcion,
              bloque, sentencia, declaracion, asignacion,
-             estructura_control, declaracion_if,
-             expresion_logica, expresion_relacional,
-             asignacion_opcional, operador_logico, negacion, 
-             declaracion_for, inc_for, condicion_for,
+             estructura_control, declaracion_if,term,
+             expresion_logica, expresion_relacional,op_mult,
+             asignacion_opcional, operador_logico, 
+             declaracion_for, inc_for, condicion_for,factor,
              declaracion_do_while, main, lectura, escritura, expresion,
              expresion_unaria, expresion_binaria, operador_unario,
-             operador, literal, literal_int,else_parte,
+             operador_binario, literal, literal_int,else_parte,array_expr,
              literal_float, literal_bool, literal_char, literal_string,
-             llamada_funcion, parametrosInv, paramInv, tipo_array,declaracion_opcional,
-             acceso_arreglo,asignacion_arreglo,operador_relacional;
+             llamada_funcion, parametrosInv, paramInv,declaracion_opcional,
+             asignacion_arreglo,operador_relacional;
 
 // Precedencias
 
@@ -59,10 +58,11 @@ precedence left MULTIPLICACION, DIVISION, MODULO;
 precedence right POTENCIA;
 precedence left CONJUNCION, DISYUNCION;
 precedence left MENOR_QUE, MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES;
+precedence right INCREMENTO, DECREMENTO, RESTA;
 
 // Regla inicial
 
-start with expresion;
+start with inicio;
 
 // Reglas para la sección "inicio"
 
@@ -87,21 +87,20 @@ estructura_control::= declaracion_if
                     | declaracion_do_while 
                     | declaracion_for;
 
-acceso_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO DOLAR;
 
-asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO IGUAL expresion DOLAR;
+asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO IGUAL expresion;
 
-declaracion_if ::= IF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO cuerpo_funcion else_parte;
+declaracion_if ::= IF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte;
 
-else_parte ::= ELIF PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO cuerpo_funcion else_parte
+else_parte ::= ELIF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte
              | ELSE cuerpo_funcion
              |;
 
 declaracion_for ::= FOR PARENTESIS_ABIERTO condicion_for PARENTESIS_CERRADO cuerpo_funcion;
 
-condicion_for ::= asignacion DOLAR expresion_logica DOLAR inc_for;
+condicion_for ::= asignacion DOLAR expresion_relacional DOLAR inc_for;
 
-declaracion_do_while ::= DO cuerpo_funcion WHILE PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO DOLAR;
+declaracion_do_while ::= DO cuerpo_funcion WHILE PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO DOLAR;
 
 inc_for::=  INCREMENTO identificador
                | DECREMENTO identificador
@@ -111,31 +110,52 @@ inc_for::=  INCREMENTO identificador
 
 // Reglas para las posibles sentencias
 
-sentencia ::= declaracion
-            | asignacion
+sentencia ::= declaracion DOLAR
+            | asignacion DOLAR
             | estructura_control
             | lectura DOLAR
             | escritura DOLAR
-            | asignacion_arreglo
+            | asignacion_arreglo DOLAR
             | llamada_funcion DOLAR
             | RETURN expresion DOLAR
             | BREAK DOLAR;
 
 
-lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
+lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO 
+           |READ PARENTESIS_ABIERTO identificador PARENTESIS_CERRADO;
 
-escritura ::= PRINT PARENTESIS_ABIERTO PARENTESIS_CERRADO;
+escritura ::=  PRINT PARENTESIS_ABIERTO PARENTESIS_CERRADO
+              |PRINT PARENTESIS_ABIERTO identificador PARENTESIS_CERRADO;
 
 // Reglas para las posibles expressiones
 
-expresion ::= identificador 
-            | literal 
-            | expresion_unaria 
-            | expresion_binaria 
-            | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO
-            | tipo_array
+expresion ::= expresion_relacional;
+
+expresion_relacional::= expresion_logica 
+                      | expresion_relacional operador_logico expresion_relacional
+                      | expresion_logica operador_relacional expresion_logica
+                      |expresion_relacional operador_relacional expresion_relacional;
+
+expresion_logica::=   expresion_binaria
+                    | expresion_logica operador_logico expresion_logica
+                    | NEGACION expresion_logica ;
+
+expresion_binaria ::= term 
+                    | expresion_binaria operador_binario term;
+                    
+term ::=  factor
+        | term op_mult factor;
+
+factor ::=    literal 
+            | identificador  
             | llamada_funcion 
-            | acceso_arreglo;
+            | operador_unario factor
+            | expresion_unaria
+            | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO 
+            | array_expr;
+
+
+array_expr ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO;
 
 identificador ::= IDENTIFICADOR;
 
@@ -167,27 +187,22 @@ literal_bool ::= TRUE | FALSE;
 literal_char::= LITERAL_CHAR;
 literal_string::= LITERAL_STRING;
 
-tipo_array ::= INT identificador CORCHETE_ABIERTO ARRAY_NUMBER CORCHETE_CERRADO
-            |CHAR identificador CORCHETE_ABIERTO ARRAY_NUMBER CORCHETE_CERRADO;
-
-declaracion ::= tipo identificador declaracion_opcional DOLAR;
+declaracion ::= tipo identificador declaracion_opcional;
 
 asignacion ::= identificador asignacion_opcional;
 
-expresion_binaria ::= expresion operador expresion;
- 
-expresion_unaria ::= operador_unario expresion;
 
-// Reglas para las expresiones unarias
-
-operador_unario ::= INCREMENTO | DECREMENTO | RESTA ;
 
 // operadores
 
-operador ::= SUMA
+operador_binario ::= SUMA
             | RESTA
             | POTENCIA
             | MULTIPLICACION
+            | MODULO
+            | DIVISION;
+
+op_mult ::=   MULTIPLICACION
             | MODULO
             | DIVISION;
 
@@ -198,13 +213,9 @@ operador_relacional ::= MENOR_QUE
                       | IGUALES
                       | DIFERENTES;
   
-
-expresion_logica ::= negacion expresion_logica
-                   | expresion_relacional operador_logico expresion_relacional
-                   | expresion operador_relacional expresion
-                   | PARENTESIS_ABIERTO expresion_logica PARENTESIS_CERRADO;
-
-negacion ::= NEGACION; 
+operador_unario::=  INCREMENTO
+                   | DECREMENTO
+                   | RESTA;
 
 operador_logico ::= CONJUNCION
                    |DISYUNCION;
@@ -214,8 +225,7 @@ declaracion_opcional ::= IGUAL expresion
                       | IGUAL escritura
                       | ;
 
-asignacion_opcional ::= IGUAL expresion DOLAR
-                      | IGUAL lectura DOLAR
-                      | IGUAL escritura DOLAR
-                      | IGUAL expresion_logica DOLAR
+asignacion_opcional ::= IGUAL expresion 
+                      | IGUAL lectura 
+                      | IGUAL escritura 
                       | ;
