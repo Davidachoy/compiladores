@@ -198,7 +198,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
                 resultado += "  <Literal string>\t" + lexer.lexeme + "\n";
                 break;
             case ERROR:
-                resultado += "  <Simbolo no definido>\n";
+                resultado += "Elemento no definido ->" + lexer.yytext() + "\n";
                 break;
             case COMENTARIO_LINEA:
              // Ignorar comentarios de una línea
@@ -282,6 +282,11 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButton2.setText("Borrar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         txtLexico.setEditable(false);
         txtLexico.setColumns(20);
@@ -297,7 +302,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(btnAnalizarLexico, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -317,8 +322,8 @@ public class FrmPrincipal extends javax.swing.JFrame {
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         btnAnalizarSintactico.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
@@ -331,6 +336,11 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButton3.setText("Borrar");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         txtSintactico.setEditable(false);
         txtSintactico.setColumns(20);
@@ -425,7 +435,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
     private void btnAnalizarSintacticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAnalizarSintacticoActionPerformed
         // TODO add your handling code here:
-         String ST = txtReader.getText();
+        String ST = txtReader.getText();
         Sintax s = new Sintax(new codigo.LexerCup(new StringReader(ST)));
 
         List<String> errores = new ArrayList<>();
@@ -457,6 +467,14 @@ public class FrmPrincipal extends javax.swing.JFrame {
             txtSintactico.setForeground(Color.red);
         }
     }//GEN-LAST:event_btnAnalizarSintacticoActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        txtLexico.setText(null);
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        txtSintactico.setText(null);
+    }//GEN-LAST:event_jButton3ActionPerformed
         
     /**
      * @param args the command line arguments

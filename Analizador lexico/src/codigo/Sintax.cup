@@ -9,17 +9,17 @@ parser code
     private Symbol s;
 
     // Método que se invoca cuando ocurre un error de sintaxis
-
     public void syntax_error(Symbol s){
         this.s = s;
+        System.err.println("Error de sintaxis en la línea " + s.left + ", columna " + s.right + ": se encontró " + s.value);
     }
 
     // Devuelve el símbolo actual
-
     public Symbol getS(){
         return this.s;
-}
+    }
 :};
+
 
 // Terminales
 
@@ -119,6 +119,8 @@ sentencia ::= declaracion DOLAR
             | llamada_funcion DOLAR
             | RETURN expresion DOLAR
             | BREAK DOLAR;
+
+
 
 
 lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO 
