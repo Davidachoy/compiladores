@@ -18,9 +18,9 @@ public class Principal {
 
     public static void main(String[] args) {
 
-        String ruta1 = "C:/Users/javie/Desktop/Analizador lexico/src/codigo/Lexer.flex";
-        String ruta2 = "C:/Users/javie/Desktop/Analizador lexico/src/codigo/LexerCup";
-        String[] rutaS = {"-parser", "Sintax", "C:/Users/javie/Desktop/Analizador lexico/src/codigo/Sintax.cup"};
+        String ruta1 = "C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/Lexer.flex";
+        String ruta2 = "C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/LexerCup";
+        String[] rutaS = {"-parser", "Sintax", "C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/Sintax.cup"};
         generar(ruta1, ruta2, rutaS);
     }
 
@@ -32,21 +32,21 @@ public class Principal {
             JFlex.Main.generate(archivo);
             java_cup.Main.main(rutaS);
 
-            Path rutaSym = Paths.get("C:/Users/javie/Desktop/Analizador lexico/src/codigo/sym.java");
+            Path rutaSym = Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/sym.java");
             if (Files.exists(rutaSym)) {
                 Files.delete(rutaSym);
             }
             Files.move(
-                    Paths.get("C:/Users/javie/Desktop/Analizador lexico/sym.java"),
-                    Paths.get("C:/Users/javie/Desktop/Analizador lexico/src/codigo/sym.java"));
+                    Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/sym.java"),
+                    Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/sym.java"));
 
-            Path rutaSin = Paths.get("C:/Users/javie/Desktop/Analizador lexico/src/codigo/Sintax.java");
+            Path rutaSin = Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/Sintax.java");
             if (Files.exists(rutaSin)) {
                 Files.delete(rutaSin);
             }
             Files.move(
-                    Paths.get("C:/Users/javie/Desktop/Analizador lexico/Sintax.java"),
-                    Paths.get("C:/Users/javie/Desktop/Analizador lexico/src/codigo/Sintax.java"));
+                    Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/Sintax.java"),
+                    Paths.get("C:/Users/david/OneDrive/Desktop/compiladores-main/Analizador lexico/src/codigo/Sintax.java"));
         } catch (java_cup.internal_error ex) {
             System.out.println("Error al generar Sintax.java: " + ex.getMessage());
         } catch (Exception ex) {
