@@ -1,0 +1,244 @@
+package codigo;
+
+import java_cup.runtime.Symbol;
+
+// Sección para el código del parser
+
+parser code
+{:
+    private Symbol s;
+
+    // Método que se invoca cuando ocurre un error de sintaxis
+    public void syntax_error(Symbol s){
+        this.s = s;
+        System.err.println("Error de sintaxis en la línea " + s.left + ", columna " + s.right + ": se encontró " + s.value);
+    }
+
+    // Devuelve el símbolo actual
+    public Symbol getS(){
+        return this.s;
+    }
+:};
+
+
+// Terminales
+
+terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
+         LLAVE_CERRADA, PARENTESIS_ABIERTO, PARENTESIS_CERRADO,
+         IGUAL, LITERAL_INT, LITERAL_FLOAT,
+         LITERAL_CHAR, LITERAL_STRING,
+         CORCHETE_ABIERTO,
+         CORCHETE_CERRADO, IF, ELIF, ELSE, WHILE, FOR, DO, RETURN,
+         READ, PRINT, MAIN, TRUE, FALSE, NEGACION, BREAK, MENOR_QUE,
+         MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES,SUMA,RESTA,
+         MULTIPLICACION, DIVISION,MODULO, POTENCIA, ERROR,
+         CONJUNCION, DISYUNCION, DOLAR,INCREMENTO,DECREMENTO;
+
+
+// No terminales
+
+non terminal inicio, funcion, nombre_funcion, tipo,identi_liter,
+             identificador, parametros, param, cuerpo_funcion,
+             bloque, sentencia, declaracion, asignacion,
+             estructura_control, declaracion_if,term,
+             expresion_logica, expresion_relacional,op_mult,
+             asignacion_opcional, operador_logico, funciones,
+             declaracion_for, inc_for, condicion_for,factor,declaracion_arreglo,
+             declaracion_do_while, main, lectura, escritura, expresion,
+             expresion_unaria, expresion_binaria, operador_unario,
+             operador_binario, literal, literal_int,else_parte,array_expr,
+             literal_float, literal_bool, literal_char, literal_string,
+             llamada_funcion, parametrosInv, paramInv,declaracion_opcional,
+             asignacion_arreglo,operador_relacional;
+
+// Precedencias
+
+precedence left SUMA, RESTA;
+precedence left MULTIPLICACION, DIVISION, MODULO;
+precedence right POTENCIA;
+precedence left CONJUNCION, DISYUNCION;
+precedence left MENOR_QUE, MENOR_IGUAL, MAYOR_QUE, MAYOR_IGUAL, IGUALES, DIFERENTES;
+precedence right INCREMENTO, DECREMENTO, RESTA;
+
+// Regla inicial
+
+start with inicio;
+
+// Reglas para la sección "inicio"
+
+inicio::= main 
+        | main funciones 
+        | funciones main 
+        | funciones main funciones;
+
+funciones ::= funciones funcion 
+             |funcion;
+
+main ::= INT MAIN PARENTESIS_ABIERTO PARENTESIS_CERRADO cuerpo_funcion;
+
+cuerpo_funcion ::= LLAVE_ABIERTA bloque LLAVE_CERRADA;
+
+funcion::= nombre_funcion cuerpo_funcion;
+
+nombre_funcion ::= tipo identificador PARENTESIS_ABIERTO parametros PARENTESIS_CERRADO;
+
+bloque ::= bloque sentencia  | sentencia;
+
+// Reglas para la sección "estructura_control"
+
+estructura_control::= declaracion_if 
+                    | declaracion_do_while 
+                    | declaracion_for;
+
+
+asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO IGUAL expresion;
+
+declaracion_arreglo ::= tipo identificador  CORCHETE_ABIERTO expresion CORCHETE_CERRADO;
+
+declaracion_if ::= IF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte;
+
+else_parte ::= ELIF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte
+             | ELSE cuerpo_funcion
+             |;
+
+declaracion_for ::= FOR PARENTESIS_ABIERTO condicion_for PARENTESIS_CERRADO cuerpo_funcion;
+
+condicion_for ::= asignacion DOLAR expresion_relacional DOLAR inc_for
+                 |declaracion DOLAR expresion_relacional DOLAR inc_for;
+
+declaracion_do_while ::= DO cuerpo_funcion WHILE PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO DOLAR;
+
+inc_for::=  INCREMENTO identificador
+               | DECREMENTO identificador
+               | asignacion;
+
+// Reglas para las posibles sentencias
+
+sentencia ::= declaracion DOLAR
+            | asignacion DOLAR
+            | estructura_control
+            | lectura DOLAR
+            | escritura DOLAR
+            | asignacion_arreglo DOLAR
+            | llamada_funcion DOLAR
+            | RETURN expresion DOLAR
+            | declaracion_arreglo DOLAR
+            | BREAK DOLAR;
+
+
+
+
+lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO 
+           |READ PARENTESIS_ABIERTO identi_liter PARENTESIS_CERRADO;
+
+escritura ::=  PRINT PARENTESIS_ABIERTO PARENTESIS_CERRADO
+              |PRINT PARENTESIS_ABIERTO identi_liter PARENTESIS_CERRADO;
+
+// Reglas para las posibles expressiones
+
+expresion ::= expresion_relacional;
+
+expresion_relacional::= expresion_logica 
+                      | expresion_relacional operador_logico expresion_relacional
+                      | expresion_logica operador_relacional expresion_logica
+                      |expresion_relacional operador_relacional expresion_relacional;
+
+expresion_logica::=   expresion_binaria
+                    | expresion_logica operador_logico expresion_logica
+                    | NEGACION expresion_logica ;
+
+expresion_binaria ::= term 
+                    | expresion_binaria operador_binario term;
+                    
+term ::=  factor
+        | term op_mult factor;
+
+factor ::=    literal 
+            | identificador  
+            | llamada_funcion 
+            | operador_unario factor
+            | expresion_unaria
+            | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO 
+            | array_expr;
+
+
+array_expr ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO;
+
+identificador ::= IDENTIFICADOR;
+
+llamada_funcion ::= identificador PARENTESIS_ABIERTO parametrosInv PARENTESIS_CERRADO 
+                |identificador PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
+
+parametros ::=    param 
+                | parametros COMA param
+                |;
+
+param ::= tipo identificador;
+
+tipo ::= INT | FLOAT | BOOL | CHAR | STRING;
+
+parametrosInv ::= parametrosInv COMA paramInv
+                 |paramInv;
+                
+paramInv ::= identificador | literal   ;
+
+
+identi_liter ::= identificador
+                |literal;
+
+// Literales
+
+literal ::=   literal_int
+            | literal_float
+            | literal_bool
+            | literal_char
+            | literal_string;
+
+literal_int ::= LITERAL_INT;
+literal_float ::= LITERAL_FLOAT;
+literal_bool ::= TRUE | FALSE;
+literal_char::= LITERAL_CHAR;
+literal_string::= LITERAL_STRING;
+
+declaracion ::= tipo identificador declaracion_opcional;
+
+asignacion ::= identificador asignacion_opcional;
+
+
+
+// operadores
+
+operador_binario ::= SUMA
+            | RESTA
+            | POTENCIA
+            | MULTIPLICACION
+            | MODULO
+            | DIVISION;
+
+op_mult ::=   MULTIPLICACION
+            | MODULO
+            | DIVISION;
+
+operador_relacional ::= MENOR_QUE
+                      | MENOR_IGUAL
+                      | MAYOR_QUE
+                      | MAYOR_IGUAL
+                      | IGUALES
+                      | DIFERENTES;
+  
+operador_unario::=  INCREMENTO
+                   | DECREMENTO
+                   | RESTA;
+
+operador_logico ::= CONJUNCION
+                   |DISYUNCION;
+
+declaracion_opcional ::= IGUAL expresion 
+                      | IGUAL lectura
+                      | IGUAL escritura
+                      | ;
+
+asignacion_opcional ::= IGUAL expresion 
+                      | IGUAL lectura 
+                      | IGUAL escritura 
+                      | ;
