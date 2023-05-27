@@ -2,6 +2,30 @@ package codigo;
 
 import java_cup.runtime.Symbol;
 
+//manejo tabla de simbolos
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+
+//class Myparsec
+action code {:
+
+    HashMap<String, ArrayList<String>> listaTablasSimbolos = new HashMap<String, ArrayList<String>>();
+    String currentHash;
+
+    public void imprimirTablaSimbolos(){
+        for (String key : listaTablasSimbolos.keySet()){
+            System.out.println("Tabla de simbolo: "+ key);
+            System.out.println("Valores: ");
+            for (String item : listaTablasSimbolos.get(key)){
+                 System.out.println(item);
+            }
+            
+            System.out.println("");
+        }
+    }
+:}
+
 // Sección para el código del parser
 
 parser code
@@ -9,10 +33,14 @@ parser code
     private Symbol s;
 
     // Método que se invoca cuando ocurre un error de sintaxis
-    public void syntax_error(Symbol s){
-        this.s = s;
-        System.err.println("Error de sintaxis en la línea " + s.left + ", columna " + s.right + ": se encontró " + s.value);
+   public void syntax_error(Symbol s){
+    if (s == null) {
+        System.err.println("El objeto Symbol proporcionado es nulo.");
+        return;
     }
+    this.s = s;
+    System.err.println("Error de sintaxis en la línea " + s.left + ", columna " + s.right + ": se encontró " + s.value);
+}
 
     // Devuelve el símbolo actual
     public Symbol getS(){
@@ -40,8 +68,8 @@ terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
 non terminal inicio, funcion, nombre_funcion, tipo,identi_liter,
              identificador, parametros, param, cuerpo_funcion,
              bloque, sentencia, declaracion, asignacion,
-             estructura_control, declaracion_if,term,
-             expresion_logica, expresion_relacional,op_mult,
+             estructura_control, declaracion_if,term,nombre_main,
+             expresion_logica, expresion_relacional,op_mult,izquierdaDeclaracion,
              asignacion_opcional, operador_logico, funciones,
              declaracion_for, inc_for, condicion_for,factor,declaracion_arreglo,
              declaracion_do_while, main, lectura, escritura, expresion,
@@ -49,7 +77,7 @@ non terminal inicio, funcion, nombre_funcion, tipo,identi_liter,
              operador_binario, literal, literal_int,else_parte,array_expr,
              literal_float, literal_bool, literal_char, literal_string,
              llamada_funcion, parametrosInv, paramInv,declaracion_opcional,
-             asignacion_arreglo,operador_relacional;
+             asignacion_arreglo,operador_relacional,identificadorFuncion;
 
 // Precedencias
 
@@ -71,16 +99,53 @@ inicio::= main
         | funciones main 
         | funciones main funciones;
 
-funciones ::= funciones funcion 
-             |funcion;
+funciones ::= funciones funcion:func1 
+            {: System.out.println("/_---Cierra tabla simbolos:---_/"+func1+"\n\n\n"); :}
+             | funcion:func1
+            {: System.out.println("/_---Cierra tabla simbolos:---_/"+func1+"\n\n\n"); :}
+             ;
 
-main ::= INT MAIN PARENTESIS_ABIERTO PARENTESIS_CERRADO cuerpo_funcion;
+main ::= nombre_main PARENTESIS_ABIERTO PARENTESIS_CERRADO cuerpo_funcion
+            {: System.out.println("/_---Cierra tabla simbolos:---_/ \n\n\n"); :}
+            ;
+
+nombre_main::= INT:i MAIN:m
+                {:
+                        System.out.println("/_+++Nueva tabla de simbolos main ");
+                        String tipoTabla;
+                        tipoTabla = "tipo:main:" +i.toString();
+
+                        ArrayList<String> funcionMain = new ArrayList<String>();
+                        currentHash = m.toString();
+                        funcionMain.add(tipoTabla);
+                        listaTablasSimbolos.put(currentHash, funcionMain);
+                        
+                :}
+                ;
 
 cuerpo_funcion ::= LLAVE_ABIERTA bloque LLAVE_CERRADA;
 
 funcion::= nombre_funcion cuerpo_funcion;
 
-nombre_funcion ::= tipo identificador PARENTESIS_ABIERTO parametros PARENTESIS_CERRADO;
+identificadorFuncion::= tipo:t IDENTIFICADOR:i
+                {:
+                        System.out.println("/_+++Nueva tabla de simbolos funcion " + i.toString());
+                        String tipoTabla = "main";
+                        if(i.toString().equals("main"))
+                            tipoTabla = "tipo:main:" +t.toString();
+                        else
+                            tipoTabla = "tipo:funcion:"+ t.toString();
+
+                        ArrayList<String> funcionMain = new ArrayList<String>();
+                        currentHash = i.toString();
+                        funcionMain.add(tipoTabla);
+                        listaTablasSimbolos.put(currentHash, funcionMain);
+                        
+                :}
+                ;
+
+
+nombre_funcion ::= identificadorFuncion PARENTESIS_ABIERTO parametros PARENTESIS_CERRADO;
 
 bloque ::= bloque sentencia  | sentencia;
 
@@ -114,7 +179,7 @@ inc_for::=  INCREMENTO identificador
 
 // Reglas para las posibles sentencias
 
-sentencia ::= declaracion DOLAR
+sentencia ::= declaracion 
             | asignacion DOLAR
             | estructura_control
             | lectura DOLAR
@@ -148,17 +213,31 @@ expresion_logica::=   expresion_binaria
                     | NEGACION expresion_logica ;
 
 expresion_binaria ::= term 
-                    | expresion_binaria operador_binario term;
+                    | expresion_binaria:e1 SUMA term:e2 {: RESULT = e1 +"+"+ e2 ;:}
+                    | expresion_binaria:e1  RESTA term:e2 {: RESULT = e1 +"-"+ e2;:}
+                    | expresion_binaria:e1  POTENCIA term:e2 {:RESULT = e1 +"**"+ e2;:}
+                    | expresion_binaria:e1  MULTIPLICACION term:e2 {:RESULT = e1 +"*"+ e2;:}
+                    | expresion_binaria:e1  MODULO term:e2 {:RESULT = e1 +"~"+ e2;:}
+                    | expresion_binaria:e1  DIVISION term:e2 {:RESULT = e1 +"/"+ e2;:}
+                    ;
+
+
+
                     
 term ::=  factor
         | term op_mult factor;
 
-factor ::=    literal 
-            | identificador  
+factor ::=    LITERAL_INT:n {:RESULT = n.toString();  System.out.println("Parser: literal int en expresion: "+ n.toString()); :}
+            | LITERAL_FLOAT:n {:RESULT = n.toString();  System.out.println("Parser: literal float en expresion: "+ n.toString()); :}
+            | TRUE:n {:RESULT = n;  System.out.println("Parser: literal bool en expresion: "+ n); :}
+            | FALSE:n {:RESULT = n;  System.out.println("Parser: literal bool en expresion: "+ n); :}
+            | LITERAL_CHAR:n {:RESULT = "@"+n+"@";  System.out.println("Parser: literal char en expresion: "+ n); :}
+            | LITERAL_STRING:n {:RESULT = "/_"+n+"_/";  System.out.println("Parser: literal string en expresion: "+ n); :}
+            | identificador:n {:RESULT = n;  System.out.println("Parser: identificador en expresion: "+ n); :}
             | llamada_funcion 
             | operador_unario factor
             | expresion_unaria
-            | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO 
+            | PARENTESIS_ABIERTO expresion PARENTESIS_CERRADO:n {:RESULT = n;:}
             | array_expr;
 
 
@@ -167,7 +246,7 @@ array_expr ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO;
 identificador ::= IDENTIFICADOR;
 
 llamada_funcion ::= identificador PARENTESIS_ABIERTO parametrosInv PARENTESIS_CERRADO 
-                |identificador PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
+                | identificador PARENTESIS_ABIERTO PARENTESIS_CERRADO ;
 
 parametros ::=    param 
                 | parametros COMA param
@@ -175,7 +254,12 @@ parametros ::=    param
 
 param ::= tipo identificador;
 
-tipo ::= INT | FLOAT | BOOL | CHAR | STRING;
+tipo ::= INT    {:RESULT = "int";:}
+       | FLOAT  {:RESULT = "float";:}
+       | BOOL   {:RESULT = "bool";:}
+       | CHAR   {:RESULT = "char";:}
+       | STRING {:RESULT = "string";:}
+       ;
 
 parametrosInv ::= parametrosInv COMA paramInv
                  |paramInv;
@@ -194,27 +278,38 @@ literal ::=   literal_int
             | literal_char
             | literal_string;
 
-literal_int ::= LITERAL_INT;
-literal_float ::= LITERAL_FLOAT;
-literal_bool ::= TRUE | FALSE;
-literal_char::= LITERAL_CHAR;
-literal_string::= LITERAL_STRING;
+literal_int ::= LITERAL_INT:n {:RESULT = n.toString();:};
+literal_float ::= LITERAL_FLOAT:n {:RESULT = n.toString();:}; 
+literal_bool ::= TRUE | FALSE:n {:RESULT = n.toString();:};
+literal_char::= LITERAL_CHAR:n {:RESULT = n.toString();:};
+literal_string::= LITERAL_STRING:n {:RESULT = n.toString();:};
 
-declaracion ::= tipo identificador declaracion_opcional;
+declaracion ::= izquierdaDeclaracion declaracion_opcional DOLAR;
 
-asignacion ::= identificador asignacion_opcional;
+
+izquierdaDeclaracion ::= tipo:t IDENTIFICADOR:idVar
+                {:
+                    System.out.println("Parser: identificador(agregar o verificar) "+ idVar.toString());
+                    listaTablasSimbolos.get(currentHash).add(idVar.toString()+":"+t.toString());
+                 :}
+;
+
+
+
+
+
+asignacion ::= IDENTIFICADOR:idVar asignacion_opcional
+            {:
+                                    
+                    System.out.println("Parser: identificador(agregar o verificar) "+ idVar.toString());
+                    listaTablasSimbolos.get(currentHash).add(idVar.toString());
+               
+            :}
+;
 
 
 
 // operadores
-
-operador_binario ::= SUMA
-            | RESTA
-            | POTENCIA
-            | MULTIPLICACION
-            | MODULO
-            | DIVISION;
-
 op_mult ::=   MULTIPLICACION
             | MODULO
             | DIVISION;
