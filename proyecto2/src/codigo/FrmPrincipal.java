@@ -442,6 +442,8 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
         try {
             s.parse();
+            s.action_obj.imprimirTablaSimbolos();
+            s.action_obj.imprimirCod3D();
             if (errores.isEmpty()) {
                 txtSintactico.setText("Analisis realizado correctamente");
                 txtSintactico.setForeground(new Color(25, 111, 61));
@@ -454,6 +456,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
                 txtSintactico.setText(sb.toString());
                 txtSintactico.setForeground(Color.red);
             }
+    
         } catch (Exception ex) {
             Symbol sym = s.getS();
             errores.add("Error de sintaxis. Linea: " + (sym.right + 1) +
