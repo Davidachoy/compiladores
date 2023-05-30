@@ -1,0 +1,84 @@
+
+package codigo;
+import java_cup.runtime.Symbol;
+%%
+%class LexerCup
+%type java_cup.runtime.Symbol
+%cup
+%full
+%line
+%char
+%{
+    
+    private Symbol symbol(int type, Object value){
+        return new Symbol(type, yyline, yycolumn, value);
+        }
+    private Symbol symbol(int type){
+        return new Symbol(type, yyline, yycolumn);
+        }
+    private Symbol symbol(int type, int yychar1, int yyline1, Object value){
+        return new Symbol(type, yyline, yycolumn, value);
+        }        
+        
+%}
+%%
+"int" { return symbol(sym.INT, yychar, yyline, yytext()); }
+"float" { return symbol(sym.FLOAT, yychar, yyline, yytext()); }
+"bool" { return symbol(sym.BOOL, yychar, yyline, yytext()); }
+"char" { return symbol(sym.CHAR, yychar, yyline, yytext()); }
+"string" { return symbol(sym.STRING, yychar, yyline, yytext()); }
+"if" { return symbol(sym.IF, yychar, yyline, yytext());      }
+"elif" { return symbol(sym.ELIF, yychar, yyline, yytext()); }
+"else" { return symbol(sym.ELSE, yychar, yyline, yytext()); }
+"while" { return symbol(sym.WHILE, yychar, yyline, yytext()); }
+"for" { return symbol(sym.FOR, yychar, yyline, yytext()); }
+"do" { return symbol(sym.DO, yychar, yyline, yytext()); }
+"return" { return symbol(sym.RETURN, yychar, yyline, yytext()); }
+"read" { return symbol(sym.READ, yychar, yyline, yytext()); }
+"print" { return symbol(sym.PRINT, yychar, yyline, yytext()); }
+"main" { return symbol(sym.MAIN, yychar, yyline, yytext()); }
+"true" { return symbol(sym.TRUE, yychar, yyline, yytext()); }
+"break" { return symbol(sym.BREAK, yychar, yyline, yytext()); }
+"false" { return symbol(sym.FALSE, yychar, yyline, yytext()); }
+"++" { return symbol(sym.INCREMENTO, yychar, yyline, yytext()); }
+"--" { return symbol(sym.DECREMENTO, yychar, yyline, yytext()); }
+"+" { return symbol(sym.SUMA, yychar, yyline, yytext()); }
+"-" { return symbol(sym.RESTA, yychar, yyline, yytext()); }
+"[" { return symbol(sym.CORCHETE_ABIERTO, yychar, yyline, yytext()); }
+"]" { return symbol(sym.CORCHETE_CERRADO, yychar, yyline, yytext()); }
+"*" { return symbol(sym.MULTIPLICACION, yychar, yyline, yytext()); }
+"/" { return symbol(sym.DIVISION, yychar, yyline, yytext()); }
+"**" { return symbol(sym.POTENCIA, yychar, yyline, yytext()); }
+"~" { return symbol(sym.MODULO, yychar, yyline, yytext()); }
+"(" { return symbol(sym.PARENTESIS_ABIERTO, yychar, yyline, yytext()); }
+")" { return symbol(sym.PARENTESIS_CERRADO, yychar, yyline, yytext()); }
+"{" { return symbol(sym.LLAVE_ABIERTA, yychar, yyline, yytext()); }
+"}" { return symbol(sym.LLAVE_CERRADA, yychar, yyline, yytext()); }
+"<" { return symbol(sym.MENOR_QUE, yychar, yyline, yytext()); }
+"<=" { return symbol(sym.MENOR_IGUAL, yychar, yyline, yytext()); }
+">" { return symbol(sym.MAYOR_QUE, yychar, yyline, yytext()); }
+">=" { return symbol(sym.MAYOR_IGUAL, yychar, yyline, yytext()); }
+"==" { return symbol(sym.IGUALES, yychar, yyline, yytext()); }
+"!=" { return symbol(sym.DIFERENTES, yychar, yyline, yytext()); }
+"^" { return symbol(sym.CONJUNCION, yychar, yyline, yytext()); }
+"#" { return symbol(sym.DISYUNCION, yychar, yyline, yytext()); }
+"!" { return symbol(sym.NEGACION, yychar, yyline, yytext()); }
+"not" { return symbol(sym.NEGACION, yychar, yyline, yytext()); }
+"," { return symbol(sym.COMA, yychar, yyline, yytext()); }
+"$" { return symbol(sym.DOLAR, yychar, yyline, yytext()); }
+"=" { return symbol(sym.IGUAL, yychar, yyline, yytext()); }
+@[^\n]*\n { /* Ignore */ }
+"/_" [^_]* "_/" {  /* Ignore */  }
+[a-zA-Z_][a-zA-Z0-9_]* { return symbol(sym.IDENTIFICADOR, yychar, yyline, yytext()); }
+("-"[0-9]+".")|[0-9]+"."[0-9]+ { return symbol(sym.LITERAL_FLOAT, yychar, yyline, yytext()); }
+0|[1-9][0-9]*(\.[0-9]+)? {
+  if (yytext().contains(".")) {
+    return symbol(sym.LITERAL_FLOAT, yychar, yyline, yytext());
+  } else {
+    return symbol(sym.LITERAL_INT, yychar, yyline, yytext());
+  }
+}
+\'([^\'\\]|\\.)\' { return symbol(sym.LITERAL_CHAR, yychar, yyline, yytext()); }
+\"([^\"\\]|\\.)*\" { return symbol(sym.LITERAL_STRING, yychar, yyline, yytext()); }
+[ \t\r\n]+ { /* Ignore */ }
+. { return symbol(sym.ERROR, yychar, yyline, yytext()); }
