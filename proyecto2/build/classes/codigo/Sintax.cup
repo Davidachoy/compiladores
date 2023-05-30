@@ -80,7 +80,7 @@ terminal INT, FLOAT, BOOL, CHAR, STRING, IDENTIFICADOR, COMA, LLAVE_ABIERTA,
 // No terminales
 
 non terminal inicio, funcion, nombre_funcion, tipo,identi_liter,
-             identificador, parametros, param, cuerpo_funcion,
+             identificador, parametros, param, cuerpo_funcion,ifInicio,
              bloque, sentencia, declaracion, asignacion,
              estructura_control, declaracion_if,term,nombre_main,
              expresion_logica, expresion_relacional,op_mult,izquierdaDeclaracion,
@@ -125,6 +125,9 @@ main ::= nombre_main PARENTESIS_ABIERTO PARENTESIS_CERRADO cuerpo_funcion
 
 nombre_main::= INT:i MAIN:m
                 {:
+ //COD3
+                        cod3D.append("\n_"+m+":");
+                        RESULT = m.toString();  
                         System.out.println("/_+++Nueva tabla de simbolos main ");
                         String tipoTabla;
                         tipoTabla = "tipo:main:" +i.toString();
@@ -180,7 +183,17 @@ asignacion_arreglo ::= identificador CORCHETE_ABIERTO expresion CORCHETE_CERRADO
 
 declaracion_arreglo ::= tipo identificador  CORCHETE_ABIERTO expresion CORCHETE_CERRADO;
 
-declaracion_if ::= IF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte;
+declaracion_if ::= ifInicio IF PARENTESIS_ABIERTO expresion_relacional:e PARENTESIS_CERRADO LLAVE_ABIERTA bloque LLAVE_CERRADA else_parte;
+                  
+
+ifInicio ::=   {:
+                    String temp = "t" + (currentTemp++);
+                    
+                    cod3D.append("\n" + temp + "_start:");
+                    
+                   
+                        
+                    :};
 
 else_parte ::= ELIF PARENTESIS_ABIERTO expresion_relacional PARENTESIS_CERRADO cuerpo_funcion else_parte
              | ELSE cuerpo_funcion
@@ -199,7 +212,7 @@ inc_for::=  INCREMENTO identificador
 
 // Reglas para las posibles sentencias
 
-sentencia ::= declaracion 
+sentencia ::= declaracion:d {:RESULT = d.toString();:} 
             | asignacion DOLAR
             | estructura_control
             | lectura DOLAR
@@ -218,9 +231,6 @@ sentencia ::= declaracion
             | declaracion_arreglo DOLAR
             | BREAK DOLAR;
 
-
-
-
 lectura ::= READ PARENTESIS_ABIERTO PARENTESIS_CERRADO 
            |READ PARENTESIS_ABIERTO identi_liter PARENTESIS_CERRADO;
 
@@ -232,12 +242,49 @@ escritura ::=  PRINT PARENTESIS_ABIERTO PARENTESIS_CERRADO
 expresion ::= expresion_relacional:exre {: RESULT = exre.toString();:};
 
 expresion_relacional::= expresion_logica:exlog  {: RESULT = exlog.toString();:}
-                      | expresion_relacional operador_logico expresion_relacional
-                      | expresion_logica operador_relacional expresion_logica
-                      |expresion_relacional operador_relacional expresion_relacional;
+                      | expresion_relacional:e1 operador_logico:opL expresion_relacional:e2
+                        {:
+                            String[] partesExpr1 = e1.toString().split("::");
+                            String[] partesExpr2 = e2.toString().split("::");
+                            String temp = "t"+(currentTemp++);
+                            cod3D.append("\n"+temp+" = "+partesExpr1[1]+" "+opL +" "+partesExpr2[1]);
+                            RESULT = partesExpr1[0]+opL+partesExpr2[0]+"::"+temp;
+                            
+
+
+                        :}
+                      | expresion_logica:e1 operador_relacional:opR expresion_logica:e2
+
+                        {:
+                            String[] partesExpr1 = e1.toString().split("::");
+                            String[] partesExpr2 = e2.toString().split("::");
+                            String temp = "t"+(currentTemp++);
+                            cod3D.append("\n"+temp+" = "+partesExpr1[1]+" "+opR +" "+partesExpr2[1]);
+                            RESULT = partesExpr1[0]+opR+partesExpr2[0]+"::"+temp;
+                            
+                        :}
+
+
+                      |expresion_relacional:e1 operador_relacional:opR expresion_relacional:e2
+                        {:
+                            String[] partesExpr1 = e1.toString().split("::");
+                            String[] partesExpr2 = e2.toString().split("::");
+                            String temp = "t"+(currentTemp++);
+                            cod3D.append("\n"+temp+" = "+partesExpr1[1]+" "+opR +" "+partesExpr2[1]);
+                            RESULT = partesExpr1[0]+opR+partesExpr2[0]+"::"+temp;
+                        :}
+;
 
 expresion_logica::=   expresion_binaria:ex  {: RESULT = ex.toString();:}
-                    | expresion_logica operador_logico expresion_logica
+                    | expresion_logica:e1 operador_logico:opL expresion_logica:e2
+                        {:
+                            String[] partesExpr1 = e1.toString().split("::");
+                            String[] partesExpr2 = e2.toString().split("::");
+                            String temp = "t"+(currentTemp++);
+                            cod3D.append("\n"+temp+" = "+partesExpr1[1]+" "+opL +" "+partesExpr2[1]);
+                            RESULT = partesExpr1[0]+opL+partesExpr2[0]+"::"+temp;
+                            
+                        :}
                     | NEGACION expresion_logica ;
 
 expresion_binaria ::= term:t  {: RESULT = t.toString();:} 
@@ -250,16 +297,66 @@ expresion_binaria ::= term:t  {: RESULT = t.toString();:}
                         cod3D.append("\n"+temp+" = "+partesExpr1[1]+" + "+partesExpr2[1]);
                         RESULT = partesExpr1[0]+"+"+partesExpr2[0]+"::"+temp;
                     :}
-                    | expresion_binaria:e1  RESTA term:e2 {: RESULT = e1 +"-"+ e2;:}
-                    | expresion_binaria:e1  POTENCIA term:e2 {:RESULT = e1 +"**"+ e2;:}
-                    | expresion_binaria:e1  MULTIPLICACION term:e2 {:RESULT = e1 +"*"+ e2;:}
-                    | expresion_binaria:e1  MODULO term:e2 {:RESULT = e1 +"~"+ e2;:}
-                    | expresion_binaria:e1  DIVISION term:e2 {:RESULT = e1 +"/"+ e2;:}
+                    | expresion_binaria:e1  RESTA term:e2 
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" - "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+"-"+partesExpr2[0]+"::"+temp;
+                    :}
+                    | expresion_binaria:e1  POTENCIA term:e2  
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" ** "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+"**"+partesExpr2[0]+"::"+temp;
+                    :}
+                    | expresion_binaria:e1  MULTIPLICACION term:e2 
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" * "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+"*"+partesExpr2[0]+"::"+temp;
+                    :}
+                    | expresion_binaria:e1  MODULO term:e2 
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" ~ "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+"~"+partesExpr2[0]+"::"+temp;
+                    :}
+                    | expresion_binaria:e1  DIVISION term:e2 
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" / "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+"/"+partesExpr2[0]+"::"+temp;
+                    :}
                     ;
 
                     
 term ::=  factor:factor  {: RESULT = factor.toString();:}
-        | term op_mult factor;
+        | term:e1 op_mult:opM factor:e2
+                    {:
+                        //COD3
+                        String[] partesExpr1 = e1.toString().split("::");
+                        String[] partesExpr2 = e2.toString().split("::");
+                        String temp = "t"+(currentTemp++);
+                        cod3D.append("\n"+temp+" = "+partesExpr1[1]+" "+opM+" "+partesExpr2[1]);
+                        RESULT = partesExpr1[0]+opM+partesExpr2[0]+"::"+temp;
+                    :}
+
+;
  
 factor ::=    LITERAL_INT:n
              {:
@@ -365,6 +462,7 @@ declaracion ::= izquierdaDeclaracion:crea IGUAL expresion:e  DOLAR
                                                                     String[] partesExpr = e.toString().split("::");
                                                                     cod3D.append( "\n"+crea.toString()+" = "+partesExpr[1]); 
                                                                     System.out.println("PARSER: expresión: "+partesExpr[0]); 
+                                                                    RESULT = "\n"+partesExpr[0]+" = "+partesExpr[1]+"\n"+crea.toString()+" = "+partesExpr[0];
                                                                 :}
                 | izquierdaDeclaracion IGUAL lectura DOLAR
                 | izquierdaDeclaracion IGUAL escritura DOLAR
@@ -385,7 +483,7 @@ izquierdaDeclaracion ::= tipo:t IDENTIFICADOR:idVar
 
 
 
-asignacion ::= IDENTIFICADOR:idVar asignacion_opcional
+asignacion ::= IDENTIFICADOR:idVar asignacion_opcional:aop
             {:
                                     
                 List<String> lista = listaTablasSimbolos.get(currentHash);
@@ -402,34 +500,34 @@ asignacion ::= IDENTIFICADOR:idVar asignacion_opcional
                 }else{
                     System.out.println("Parser: identificador(agregar o verificar) "+ idVar.toString());
                     listaTablasSimbolos.get(currentHash).add(idVar.toString());
+                    String temp = "t" + (currentTemp++);
+                    cod3D.append("\n" + idVar + " = " + temp);
                 }
-                
-          
             :}
 ;
 
 
 
 // operadores
-op_mult ::=   MULTIPLICACION
-            | MODULO
-            | DIVISION;
+op_mult ::=   MULTIPLICACION {:RESULT = "*";:}
+            | MODULO {:RESULT = "~";:}
+            | DIVISION {:RESULT = "/";:};
 
-operador_relacional ::= MENOR_QUE
-                      | MENOR_IGUAL
-                      | MAYOR_QUE
-                      | MAYOR_IGUAL
-                      | IGUALES
-                      | DIFERENTES;
+operador_relacional ::= MENOR_QUE {:RESULT = "<";:}
+                      | MENOR_IGUAL {:RESULT = "<=";:}
+                      | MAYOR_QUE {:RESULT = ">";:}
+                      | MAYOR_IGUAL {:RESULT = ">=";:}
+                      | IGUALES {:RESULT = "==";:}
+                      | DIFERENTES {:RESULT = "!=";:} ;
   
-operador_unario::=  INCREMENTO
-                   | DECREMENTO
-                   | RESTA;
+operador_unario::=  INCREMENTO  {:RESULT = "++";:}
+                   | DECREMENTO {:RESULT = "--";:}
+                   | RESTA {:RESULT = "-";:} ;
 
-operador_logico ::= CONJUNCION
-                   |DISYUNCION;
+operador_logico ::= CONJUNCION {:RESULT = "^";:} 
+                   |DISYUNCION {:RESULT = "#";:} ;
 
-asignacion_opcional ::= IGUAL expresion 
+asignacion_opcional ::= IGUAL expresion:e {:RESULT = e.toString();:}
                       | IGUAL lectura 
                       | IGUAL escritura 
                       | ;
